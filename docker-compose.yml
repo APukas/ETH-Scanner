@@ -1,0 +1,38 @@
+version: "2.1"
+
+services:
+  app:
+    container_name: node
+    build:
+      context: .
+      dockerfile: nodejs.dockerfile
+    ports:
+      - '3080:5000'
+    volumes:
+      - ./src:/usr/src/app/src
+      - /usr/src/app/lib
+      - /usr/src/app/node_modules
+    links:
+      - mongo
+      - rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+  mongo:
+    container_name: mongo
+    image: "mongo:latest"
+    ports:
+      - "27017:27017"
+  rabbitmq:
+    container_name: rabbitmq
+    build:
+      context: ./docker
+      dockerfile: rabbitmq.dockerfile
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=user
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: "exit 0"
